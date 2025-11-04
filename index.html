@@ -21,26 +21,26 @@
     let currentDashboardIndex = 0;
     let vizElement = null;
 
-    async function carregarViz() {
+    async function criarViz(painel) {
       try {
+        // Pega token fresco
         const { embed_url, jwt } = await pegarToken();
-        console.log("✅ URL autenticada recebida:", embed_url);
+        const urlPainel = embed_url.replace("COMERCIALITAJA", painel);
 
         const container = document.getElementById("vizContainer");
-        container.innerHTML = "";
+        container.innerHTML = ""; // limpa viz anterior
+
         vizElement = document.createElement("tableau-viz");
-        vizElement.src = embed_url;
+        vizElement.src = urlPainel;
         vizElement.token = jwt;
         vizElement.toolbar = "hidden";
         vizElement.hideTabs = true;
         container.appendChild(vizElement);
 
-        iniciarCiclo();
-        // Recarrega a página quando o token expirar
-        setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
+        console.log("✅ Painel carregado:", painel);
 
       } catch (error) {
-        console.error("❌ Erro ao inicializar o Tableau:", error);
+        console.error("❌ Erro ao criar viz:", error);
       }
     }
 
@@ -56,19 +56,21 @@
       }
     }
 
-    function iniciarCiclo() {
-      setInterval(trocarPainel, tempoPorPainel);
-    }
-
-    function trocarPainel() {
+    async function trocarPainel() {
       currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
       const novoPainel = dashboardNames[currentDashboardIndex];
-      const newUrl = `https://us-east-1.online.tableau.com/t/anabeatriz-8787706e44/views/TVComercial-RaizzCapital_17543562925950/${novoPainel}?:embed=yes&:showAppBanner=false`;
-      vizElement.src = newUrl;
+      await criarViz(novoPainel);
       console.log("🔁 Painel trocado para:", novoPainel);
     }
 
-    carregarViz();
+    async function iniciarCiclo() {
+      await criarViz(dashboardNames[currentDashboardIndex]); // carrega primeiro painel
+      setInterval(trocarPainel, tempoPorPainel);
+      // Recarrega a página quando o token expirar
+      setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
+    }
+
+    iniciarCiclo();
   </script>
 </body>
 </html>
