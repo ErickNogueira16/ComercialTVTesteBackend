@@ -16,61 +16,58 @@
   <script>
     const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
     const dashboardNames = ["COMERCIALITAJA", "COMERCIALVIANA"];
-    const tempoPorPainel = 60000; // 60s
-    const jwtExpiraEmMinutos = 10;
+    const tempoPorPainel = 60000;
+    const jwtExpiraEmMinutos = 10; 
     let currentDashboardIndex = 0;
+    let vizElement = null;
 
-    async function criarViz(painel) {
+    async function carregarViz() {
       try {
         const { embed_url, jwt } = await pegarToken();
-        const urlPainel = embed_url.replace("COMERCIALITAJA", painel);
+        console.log("✅ URL autenticada recebida:", embed_url);
 
         const container = document.getElementById("vizContainer");
-        container.innerHTML = ""; // limpa embed anterior
-
-        const vizElement = document.createElement("tableau-viz");
-        vizElement.src = urlPainel;
+        container.innerHTML = "";
+        vizElement = document.createElement("tableau-viz");
+        vizElement.src = embed_url;
         vizElement.token = jwt;
-        vizElement.hideTabs = true;
         vizElement.toolbar = "hidden";
+        vizElement.hideTabs = true;
         container.appendChild(vizElement);
 
-        console.log("✅ Painel carregado:", painel);
+        iniciarCiclo();
+        setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
+
       } catch (error) {
-        console.error("❌ Erro ao criar viz:", error);
+        console.error("❌ Erro ao inicializar o Tableau:", error);
       }
     }
 
     async function pegarToken() {
       try {
-        const resp = await fetch(backendURL);
-        const data = await resp.json();
+        const response = await fetch(backendURL);
+        const data = await response.json();
         if (data.error) throw new Error(data.error);
         return data;
-      } catch (e) {
-        console.error("❌ Erro ao pegar token:", e);
-        throw e;
+      } catch (error) {
+        console.error("❌ Erro ao buscar token:", error);
+        throw error;
       }
     }
 
-    async function trocarPainel() {
-      currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
-      await criarViz(dashboardNames[currentDashboardIndex]);
-      console.log("🔁 Painel trocado para:", dashboardNames[currentDashboardIndex]);
-    }
-
-    async function iniciarCiclo() {
-      // carrega primeiro painel
-      await criarViz(dashboardNames[currentDashboardIndex]);
-
-      // troca de painel a cada 60s
+    function iniciarCiclo() {
       setInterval(trocarPainel, tempoPorPainel);
-
-      // recarrega página quando token expira
-      setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
     }
 
-    iniciarCiclo();
+    function trocarPainel() {
+      currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+      const novoPainel = dashboardNames[currentDashboardIndex];
+      const newUrl = `https://us-east-1.online.tableau.com/t/anabeatriz-8787706e44/views/TVComercial-RaizzCapital_17543562925950/${novoPainel}?:embed=yes&:showAppBanner=false`;
+      vizElement.src = newUrl;
+      console.log("🔁 Painel trocado para:", novoPainel);
+    }
+
+    carregarViz();
   </script>
 </body>
 </html>
