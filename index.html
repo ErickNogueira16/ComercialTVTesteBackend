@@ -19,18 +19,17 @@
     const tempoPorPainel = 60000; // 60 segundos
     const jwtExpiraEmMinutos = 10; // JWT do Connected App expira em 10 minutos
     let currentDashboardIndex = 0;
-    let vizElement = null;
 
+    // Cria o <tableau-viz> com token fresco
     async function criarViz(painel) {
       try {
-        // Pega token fresco
         const { embed_url, jwt } = await pegarToken();
         const urlPainel = embed_url.replace("COMERCIALITAJA", painel);
 
         const container = document.getElementById("vizContainer");
         container.innerHTML = ""; // limpa viz anterior
 
-        vizElement = document.createElement("tableau-viz");
+        const vizElement = document.createElement("tableau-viz");
         vizElement.src = urlPainel;
         vizElement.token = jwt;
         vizElement.toolbar = "hidden";
@@ -38,24 +37,20 @@
         container.appendChild(vizElement);
 
         console.log("✅ Painel carregado:", painel);
-
       } catch (error) {
         console.error("❌ Erro ao criar viz:", error);
       }
     }
 
+    // Busca token JWT fresco do backend
     async function pegarToken() {
-      try {
-        const response = await fetch(backendURL);
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
-        return data;
-      } catch (error) {
-        console.error("❌ Erro ao buscar token:", error);
-        throw error;
-      }
+      const response = await fetch(backendURL);
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data;
     }
 
+    // Troca para o próximo painel
     async function trocarPainel() {
       currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
       const novoPainel = dashboardNames[currentDashboardIndex];
@@ -63,10 +58,11 @@
       console.log("🔁 Painel trocado para:", novoPainel);
     }
 
+    // Inicia o ciclo de painéis
     async function iniciarCiclo() {
-      await criarViz(dashboardNames[currentDashboardIndex]); // carrega primeiro painel
+      await criarViz(dashboardNames[currentDashboardIndex]); // primeiro painel
       setInterval(trocarPainel, tempoPorPainel);
-      // Recarrega a página quando o token expirar
+      // Recarrega página quando token expirar
       setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
     }
 
