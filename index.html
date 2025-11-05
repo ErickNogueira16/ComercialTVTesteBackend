@@ -16,17 +16,14 @@
 
   <script>
     const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url?painel=comercial";
-
-    // Lista dos painéis do Comercial
     const dashboards = [
       { nome: "COMERCIAL | ITAJAÍ", view: "COMERCIALITAJA" },
       { nome: "COMERCIAL | VIANA", view: "COMERCIALVIANA" }
     ];
 
-    const tempoPorPainel = 60000; // 60 segundos
+    const tempoPorPainel = 60000;
     let currentIndex = 0;
     let vizElement = null;
-
     async function fetchToken() {
       const resp = await fetch(backendURL);
       if (!resp.ok) throw new Error("Erro no backend: " + resp.status);
@@ -55,11 +52,11 @@
       container.appendChild(vizElement);
 
       vizElement.addEventListener("firstinteractive", () => {
-        console.log(`✅ Painel carregado: ${viewSlug}`);
+        console.log(`Painel carregado: ${viewSlug}`);
       });
 
       vizElement.addEventListener("error", (e) => {
-        console.error(`❌ Erro ao carregar ${viewSlug}:`, e);
+        console.error(`Erro ao carregar ${viewSlug}:`, e);
       });
     }
 
@@ -73,16 +70,16 @@
           const painel = dashboards[currentIndex];
           const tokenData = await fetchToken();
           await criarViz(painel.view, tokenData.jwt, tokenData.embed_url);
-          console.log("🔁 Trocou para:", painel.nome);
+          console.log("Trocou para:", painel.nome);
         }, tempoPorPainel);
 
       } catch (error) {
-        console.error("❌ Erro init Comercial:", error);
+        console.error("Erro init Comercial:", error);
       }
     }
 
     init();
-    setTimeout(() => location.reload(true), 480000); // recarrega a cada 8 minutos
+    setTimeout(() => location.reload(true), 480000);
   </script>
 </body>
 </html>
