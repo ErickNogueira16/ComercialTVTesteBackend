@@ -28,6 +28,7 @@
     const tempoPorPainel = 60000;
     let currentIndex = 0;
     let vizElement = null;
+    
     async function fetchToken() {
       const resp = await fetch(backendURL);
       if (!resp.ok) throw new Error("Erro no backend: " + resp.status);
